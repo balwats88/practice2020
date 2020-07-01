@@ -1,0 +1,156 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+
+    <title>Зозуля Алина. День 2</title>
+    
+    <!-- import the webpage's stylesheet -->
+    <link rel="stylesheet" href="/style.css">
+   
+  </head>  
+  <body>
+    <h1>День 2. Задание 2.1</h1>
+    <button onclick="build()">Build</button>
+    <p>
+      function = 
+      <input id="function" type="text" size="20">
+    </p>
+    <p>xmin = <input id="xmin" type="text" size="20"></p>
+    <p>xmax = <input id="xmax" type="text" size="20"></p>
+    <p>ymin = <input id="ymin" type="text" size="20"></p>
+    <p>ymax = <input id="ymax" type="text" size="20"></p>
+    <p>W = <input id="W" type="text" size="20"></p>
+    <p>H = <input id="H" type="text" size="20"></p>
+    <canvas id="canvas"></canvas>
+    
+    
+    <script>
+    let canvas = document.getElementById("canvas");
+    let ctx = canvas.getContext("2d");
+    //class for drawing and evaluating
+    class Graphics1d {
+       constructor(xmin, xmax, ymin, ymax, W, H, f){
+         this.xmin = xmin;
+         this.xmax = xmax;
+         this.ymin = ymin;
+         this.ymax = ymax;
+         this.W = W;
+         this.H = H;
+         this.f = f;
+         this.arr = [];
+       }
+      
+      //method for drawing
+      draw(){
+        ctx.beginPath();
+        let Sx = this.W/(this.xmax-this.xmin);
+        let Sy = this.H/(this.ymax-this.ymin);
+        let i = 0;
+        let dx = (this.xmax-this.xmin)/this.W;
+        ctx.strokeStyle="red";
+        for(let x = this.xmin; x <= this.xmax; x+=dx){
+          if (Math.abs(this.arr[i]) > this.H) ctx.moveTo((x-this.xmin)*Sx, -(this.arr[i]-this.ymin)*Sy+this.H);
+          else{
+          ctx.lineTo((x-this.xmin)*Sx, -(this.arr[i]-this.ymin)*Sy+this.H);
+          if((this.arr[i] < 0.005 && this.arr[i] > -0.005)||this.arr[i] == 0)
+          {
+            ctx.ellipse((x - this.xmin) * Sx, -(this.arr[i] - this.ymin) * Sy + this.H, 2, 2, 0, 0, 2*Math.PI);
+          }}
+          i++;
+        }
+        ctx.lineWidth = 1;
+        ctx.stroke();  
+        ctx.closePath();
+      }
+      
+      //method for evaluation
+      evaluate(){
+        let j = 0;
+        let dx = (this.xmax-this.xmin)/this.W;
+        for(let i = this.xmin; i < this.xmax; i += dx){
+          this.arr[j] = this.f(i);
+          j++;
+        }
+      }
+    }
+
+    //function for building (using class Graphics1d, constructor, methods)
+    function build(){
+      let W = Number(document.getElementById("W").value);
+      let H = Number(document.getElementById("H").value);
+      let xmax = Number(document.getElementById("xmax").value);
+      let ymax = Number(document.getElementById("ymax").value);
+      let xmin = Number(document.getElementById("xmin").value);
+      let ymin = Number(document.getElementById("ymin").value);
+      canvas.width = W;  
+      canvas.height = H;
+      ctx.beginPath();
+      ctx.moveTo(W/2, 0);
+      ctx.lineTo(W/2, H);
+      ctx.moveTo(0, H/2);
+      ctx.lineTo(W, H/2);
+      ctx.strokeStyle = "green";
+      ctx.stroke();
+        for (let i = W/2; i <= W; i += 50){
+            ctx.strokeStyle = "green";
+            ctx.beginPath();
+            ctx.moveTo(i, 0);
+            ctx.lineTo(i, H);
+            ctx.stroke();
+          }
+          for (let i = W/2; i >= 0; i -= 50){
+            ctx.strokeStyle = "green";
+            ctx.beginPath();
+            ctx.moveTo(i, 0);
+            ctx.lineTo(i, H);
+            ctx.stroke();
+          }
+          for (let i = H/2; i <= H; i += 50){
+            ctx.strokeStyle = "green";
+            ctx.beginPath();
+            ctx.moveTo(0, i);
+            ctx.lineTo(W, i);
+            ctx.stroke();
+          }
+          for (let i = H/2; i >= 0; i -= 50){
+            ctx.strokeStyle = "green";
+            ctx.beginPath();
+            ctx.moveTo(0, i);
+            ctx.lineTo(W, i);
+            ctx.stroke();
+          }
+      ctx.closePath();
+      let l = document.getElementById("function").value;
+      let s1="";
+      if(l!=""){
+        for(let i = 0; i < l.length;i++){
+          if(l[i]!='x' && l[i]!='('&& l[i]!=')' && l[i]!='+' && l[i]!='-' && l[i]!='/' && l[i]!='.' 
+               && l[i]!='*'&&  !(l[i]>='0' && l[i]<='9')){
+              s1+="Math."
+              while(l[i]!=')'&& i < l.length){
+                s1+=l[i];
+                i++;
+              }
+              s1+=l[i];
+          }
+          else{
+              s1+=l[i];
+          }
+        }
+      }
+      else s1="x";
+      let f = function(x){
+        return eval(s1);
+      }
+      let d = new Graphics1d(xmin, xmax, ymin, ymax, W, H, f);
+      d.evaluate();
+      d.draw();
+    }
+  </script>
+
+    
+  </body>
+</html>
