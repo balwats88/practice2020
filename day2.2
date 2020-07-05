@@ -1,0 +1,180 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta http-equiv="X-UA-Compatible" content="IE=edge" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+
+    <title>Зозуля Алина. День 2</title>
+
+  </head>
+  <body>
+    <h1>День 2. Задание 2.2</h1>
+    <button onclick="build()">Build</button>
+    <p>
+      Введите функцию:
+      <input id="function" type="text" size="20" />
+    </p>
+    <p>Введите xmin:<input id="xmin" type="text" size="20" value="-10" /></p>
+    <p>Введите xmax:<input id="xmax" type="text" size="20" value="10" /></p>
+    <p>Введите ymin:<input id="ymin" type="text" size="20" value="-10" /></p>
+    <p>Введите ymax:<input id="ymax" type="text" size="20" value="10" /></p>
+    <p>Введите W:<input id="W" type="text" size="20" value="500" /></p>
+    <p>Введите H:<input id="H" type="text" size="20" value="500" /></p>
+    <canvas id="canvas"></canvas>
+
+    <script>
+      let canvas = document.getElementById("canvas");
+      let ctx = canvas.getContext("2d");
+      //class for drawing and evaluating
+      class Graphics2d {
+        constructor(xmin, xmax, ymin, ymax, W, H, f) {
+          this.xmin = xmin;
+          this.xmax = xmax;
+          this.ymin = ymin;
+          this.ymax = ymax;
+          this.W = W;
+          this.H = H;
+          this.f = f;
+          this.arr = [];
+        }
+
+        //method for drawing
+        draw() {
+          let imgData = ctx.getImageData(0, 0, this.W, this.H);
+          let RGBA = imgData.data;
+          let xx = 0,
+            yy = 0;
+          for (let p = 0; p < 4 * this.W * this.H; p += 4) {
+            let dx = this.W / (this.xmax - this.xmin);
+            let dy = this.H / (this.ymax - this.ymin);
+
+            //scaling
+            let x = xx / dx;
+            let y = -yy / dy;
+            x -= this.W / (2 * dx);
+            y += this.H / (2 * dy);
+
+            let thx = 1 / dx;
+            let thy = 1 / dy;
+
+            //оси
+            let ax = Math.abs(y) < thx;
+            let ay = Math.abs(x) < thy;
+            let axes = (ax + ay) * 64;
+
+            //сетка
+            let gv = Math.abs(x % 1) < thx;
+            let gh = Math.abs(y % 1) < thy;
+            let grid = (gv + gh) * 64;
+            //сетка + оси
+            let ag = axes + grid;
+
+            let F = this.f(x, y);
+
+            F *= 1024;
+
+            if (F > 0) RGBA[p + 0] = F;
+            RGBA[p + 1] = ag * 1.5;
+            if (F < 0) RGBA[p + 2] = -F;
+            RGBA[p + 3] = 255;
+            xx++;
+            if (xx == this.W) {
+              xx = 0;
+              yy++;
+            }
+          }
+          ctx.putImageData(imgData, 0, 0);
+        }
+      }
+
+      //function for building (using class Graphics1d, constructor, methods)
+      function build() {
+        let W = Number(document.getElementById("W").value);
+        let H = Number(document.getElementById("H").value);
+        let xmax = Number(document.getElementById("xmax").value);
+        let ymax = Number(document.getElementById("ymax").value);
+        let xmin = Number(document.getElementById("xmin").value);
+        let ymin = Number(document.getElementById("ymin").value);
+        canvas.width = W;
+        canvas.height = H;
+
+        //building axes and grid
+        buildag();
+
+        let l = document.getElementById("function").value;
+        let s1 = "";
+        if (l != "") {
+          for (let i = 0; i < l.length; i++) {
+            if (
+              l[i] != "x" &&
+              l[i] != "y" &&
+              l[i] != "(" &&
+              l[i] != ")" &&
+              l[i] != "+" &&
+              l[i] != "-" &&
+              l[i] != "/" &&
+              l[i] != "." &&
+              l[i] != "*" &&
+              !(l[i] >= "0" && l[i] <= "9")
+            ) {
+              s1 += "Math.";
+              while (l[i] != ")" && i < l.length) {
+                s1 += l[i];
+                i++;
+              }
+              s1 += l[i];
+            } else {
+              s1 += l[i];
+            }
+          }
+        } else s1 = "Math.sin(x/y)";
+        let f = function(x, y) {
+          return eval(s1);
+        };
+
+        let d = new Graphics2d(xmin, xmax, ymin, ymax, W, H, f);
+        d.draw();
+      }
+
+      function buildag() {
+        ctx.beginPath();
+        ctx.moveTo(this.W / 2, 0);
+        ctx.lineTo(this.W / 2, this.H);
+        ctx.moveTo(0, this.H / 2);
+        ctx.lineTo(this.W, this.H / 2);
+        ctx.strokeStyle = "green";
+        ctx.stroke();
+        for (let i = this.W / 2; i <= this.W; i += 50) {
+          ctx.strokeStyle = "green";
+          ctx.beginPath();
+          ctx.moveTo(i, 0);
+          ctx.lineTo(i, this.H);
+          ctx.stroke();
+        }
+        for (let i = this.W / 2; i >= 0; i -= 50) {
+          ctx.strokeStyle = "green";
+          ctx.beginPath();
+          ctx.moveTo(i, 0);
+          ctx.lineTo(i, this.H);
+          ctx.stroke();
+        }
+        for (let i = this.H / 2; i <= this.H; i += 50) {
+          ctx.strokeStyle = "green";
+          ctx.beginPath();
+          ctx.moveTo(0, i);
+          ctx.lineTo(this.W, i);
+          ctx.stroke();
+        }
+        for (let i = this.H / 2; i >= 0; i -= 50) {
+          ctx.strokeStyle = "green";
+          ctx.beginPath();
+          ctx.moveTo(0, i);
+          ctx.lineTo(this.W, i);
+          ctx.stroke();
+        }
+        ctx.closePath();
+      }
+    </script>
+  </body>
+</html>
