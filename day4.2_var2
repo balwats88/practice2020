@@ -1,0 +1,272 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+
+    <title>Hello!</title>
+    
+    <link rel="stylesheet" href="/style.css">
+    
+    <script src="/script.js" defer></script>
+  </head>  
+  <body>
+    <h1>4.2 Part 2 Zozulia Alina</h1>
+    <button onclick="build()">Build</button>
+    <p>
+      f = 
+      <input id="function" type="text" size="20" value = "">
+    </p>
+    <p>
+      a = 
+      <input id="a" type="text" size="20" value = "1">
+    </p>
+    <p>dx =  <input id="dx" type="text" size="20" value="10e-2" /></p>
+    <p>
+      xmin = 
+      <input id="xmin" type="text" size="20" value = "-5">
+    </p>
+    <p>
+      xmax = 
+      <input id="xmax" type="text" size="20" value = "5">
+    </p>
+      <p>ymin = <input id="ymin" type="text" size="20" value="-5" /></p>
+    <p>ymax = <input id="ymax" type="text" size="20" value="5" /></p>
+    <p>W = <input id="W" type="text" size="20" value="500" /></p>
+    <p>H = <input id="H" type="text" size="20" value="500" /></p>
+    
+    <canvas id = "canvas"></canvas>
+    <div id = "print">    
+    </div>
+    <script>
+    function FindRoot(f, a, b, dx, z, d) {
+  let j = 0;
+  let c = (f(b, z) * a - f(a, z) * b) / (f(b, z) - f(a, z));
+  function find() {
+    j++;
+    d.draw(b, z);
+    if (Math.abs(f(c, z)) > dx) {
+      let fb = f(b, z);
+      let fa = f(a, z);
+      c = (fb * a - fa * b) / (fb - fa);
+      let fc = f(c, z);
+      if (fa * fc > 0) a = c;
+      else if (fa * fc == 0) {
+        console.log(c);
+        clearInterval(m);
+        return c;
+      } else b = c;
+
+      //draw(parametr = left border);
+    } else clearInterval(m);
+  }
+  let m = setInterval(find, 2000);
+
+  return c;
+}
+function FalsiMethod(f, xmin, xmax, dx, a, d) {
+  
+  if (f(xmin, a) == 0) {
+    console.log(xmin);
+    d.draw(xmin);
+    document.getElementById("print").innerText +=
+      "root = " + xmin.toPrecision([3]) + "\n";
+    xmin += dx;
+  }
+  let x0 = xmin,
+    x1 = xmin;
+  //x0 - left border
+  //x1 - right border
+  for (let i = xmin; i <= xmax + dx; i += dx) {
+    x1 = i;
+    let s1 = Math.sign(f(x1, a));
+    if (f(x0, a) == 0) {
+      d.draw(x0);
+      console.log(x0);
+      document.getElementById("print").innerText +=
+        "root = " + x0.toPrecision([3]) + "\n";
+      //d.draw(x0);
+      x0 = x0 + dx;
+      x1 = x0;
+    }
+    if (f(x1, a) == 0) {
+      console.log(x1, a);
+      document.getElementById("print").innerText +=
+        "root = " + x1.toPrecision([3]) + "\n";
+      d.draw(x1, a);
+      x0 = x1 + dx;
+      i = x0;
+    }
+    let s0 = Math.sign(f(x0, a));
+    if (s1 * s0 < 0) {
+      let root = FindRoot(f, x0, x1, dx, a, d);
+      console.log("f(root) = " + f(root, a));
+      if (Math.abs(f(root, a)) <  1.5*dx) {
+        document.getElementById("print").innerText +=
+          "root = " + root.toPrecision([3]) + "\n";
+      }
+      x0 = root + dx;
+      i = x0;
+    }
+  }
+
+  document.getElementById("print").innerText += "all roots were founded!\n--------------" + "\n";
+}
+
+let canvas = document.getElementById("canvas");
+let ctx = canvas.getContext("2d");
+//class for drawing and evaluating
+class Graphics1d {
+  constructor(xmin, xmax, ymin, ymax, W, H, f) {
+    this.xmin = xmin;
+    this.xmax = xmax;
+    this.ymin = ymin;
+    this.ymax = ymax;
+    this.W = W;
+    this.H = H;
+    this.f = f;
+    this.arr = [];
+    this.intersec = {
+      x: [],
+      y: []
+    };
+    this.k = 0;
+  }
+  //method for evaluation
+  evaluate(a) {
+    let j = 0;
+    let dx = (this.xmax - this.xmin) / this.W;
+
+    for (let i = this.xmin; i < this.xmax; i += dx ) {
+      this.arr[j] = this.f(i, a);
+      if (j != 0) {
+        if (this.arr[j] * this.arr[j - 1] <= 0.0000001) {
+          this.intersec.x[this.k] = i;
+          this.intersec.y[this.k] = 0;
+          this.k++;
+        }
+      }
+      j++;
+    }
+  }
+
+  //method for drawing
+  draw(b, a) {
+    ctx.beginPath();
+    let Sx = this.W / (this.xmax - this.xmin);
+    let Sy = this.H / (this.ymax - this.ymin);
+    let i = 0;
+    let dx = (this.xmax - this.xmin) / this.W;
+    ctx.strokeStyle = "red";
+    for (let x = this.xmin; x <= b; x += dx) {
+      if (Math.abs(this.f(x, a)) > 1.5*this.ymax) {
+        ctx.moveTo((x - this.xmin) * Sx,
+        -(this.arr[i] - this.ymin) * Sy + this.H);
+      }
+      else{
+      ctx.lineTo(
+        (x - this.xmin) * Sx,
+        -(this.arr[i] - this.ymin) * Sy + this.H
+      );
+      ctx.stroke();
+      }
+      i++;
+    }
+    ctx.closePath();
+    ctx.beginPath();
+    i = 0;
+  }
+}
+
+//function for building (using class Graphics1d, constructor, methods)
+function build() {
+  let W = Number(document.getElementById("W").value);
+  let H = Number(document.getElementById("H").value);
+  let a = Number(document.getElementById("a").value);
+  let xmax = Number(document.getElementById("xmax").value);
+  let ymax = Number(document.getElementById("ymax").value);
+  let xmin = Number(document.getElementById("xmin").value);
+  let ymin = Number(document.getElementById("ymin").value);
+  let dx = Number(document.getElementById("dx").value);
+  canvas.width = W;
+  canvas.height = H;
+  ctx.beginPath();
+  ctx.moveTo(W / 2, 0);
+  ctx.lineTo(W / 2, H);
+  ctx.moveTo(0, H / 2);
+  ctx.lineTo(W, H / 2);
+  ctx.strokeStyle = "green";
+  ctx.stroke();
+  for (let i = W / 2; i <= W; i += 50) {
+    ctx.strokeStyle = "green";
+    ctx.beginPath();
+    ctx.moveTo(i, 0);
+    ctx.lineTo(i, H);
+    ctx.stroke();
+  }
+  for (let i = W / 2; i >= 0; i -= 50) {
+    ctx.strokeStyle = "green";
+    ctx.beginPath();
+    ctx.moveTo(i, 0);
+    ctx.lineTo(i, H);
+    ctx.stroke();
+  }
+  for (let i = H / 2; i <= H; i += 50) {
+    ctx.strokeStyle = "green";
+    ctx.beginPath();
+    ctx.moveTo(0, i);
+    ctx.lineTo(W, i);
+    ctx.stroke();
+  }
+  for (let i = H / 2; i >= 0; i -= 50) {
+    ctx.strokeStyle = "green";
+    ctx.beginPath();
+    ctx.moveTo(0, i);
+    ctx.lineTo(W, i);
+    ctx.stroke();
+  }
+  ctx.closePath();
+  let l = document.getElementById("function").value;
+
+  let s1 = "";
+  if (l != "") {
+    for (let i = 0; i < l.length; i++) {
+      if (
+        l[i] != "x" &&
+        l[i] != "a" &&
+        l[i] != "(" &&
+        l[i] != ")" &&
+        l[i] != "+" &&
+        l[i] != "-" &&
+        l[i] != "/" &&
+        l[i] != "." &&
+        l[i] != "*" &&
+        !(l[i] >= "0" && l[i] <= "9")
+      ) {
+        s1 += "Math.";
+        while (l[i] != ")" && i < l.length) {
+          s1 += l[i];
+          i++;
+        }
+        s1 += l[i];
+      } else {
+        s1 += l[i];
+      }
+    }
+  } else s1 = "a*x";
+
+  document.getElementById("print").innerText +=
+    "roots for f(x) = " + s1 + ", where a = " + a + "\n";
+  console.log(s1);
+  let f = function(x, a) {
+    return eval(s1);
+  };
+  let d = new Graphics1d(xmin, xmax, ymin, ymax, W, H, f);
+  d.evaluate(a);
+  FalsiMethod(f, xmin, xmax, dx, a, d);
+}
+
+    </script>
+  </body>
+</html>
