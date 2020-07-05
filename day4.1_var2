@@ -1,0 +1,136 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+
+    <title>Hello!</title>
+    
+    <link rel="stylesheet" href="/style.css">
+    
+    <script src="/script.js" defer></script>
+  </head>  
+  <body>
+    <h1>4.2 Zozulia Alina</h1>
+    <p>
+      f = 
+      <input id="function" type="text" size="20" value = "">
+    </p>
+    <p>
+      a = 
+      <input id="a" type="text" size="20" value = "">
+    </p>
+    <p>
+      xmin = 
+      <input id="xmin" type="text" size="20" value = "-5">
+    </p>
+    <p>
+      xmax = 
+      <input id="xmax" type="text" size="20" value = "5">
+    </p>
+    <button onclick="build()">Build</button>
+    <div id = "print">
+      
+    </div>
+    <script>
+    function FindRoot(f, a, b, dx, z) {
+  let c = (f(b, z) * a - f(a, z) * b) / (f(b, z) - f(a, z));
+  while (Math.abs(f(c, z)) > dx) {
+    let fb = f(b, z);
+    let fa = f(a, z);
+    let q = b - a;
+    c = (fb * a - fa * b) / (fb - fa);
+    let fc = f(c, z);
+    if (fa * fc > 0) a = c;
+    else if (fa * fc == 0) {
+      console.log(c);
+      return c;
+    } else b = c;
+    // async/await draw();
+    //or setTimeout + function
+  }
+
+  console.log(c);
+  return c;
+}
+function FalsiMethod(f, xmin, xmax, dx, a) {
+  if (f(xmin, a) == 0) {
+    console.log(xmin);
+
+    document.getElementById("print").innerText +=
+      "root = " + xmin.toPrecision([3]) + "\n";
+    xmin += dx;
+  }
+  let x0 = xmin,
+    x1 = xmin;
+  //x0 - left border
+  //x1 - right border
+  for (let i = xmin; i <= xmax + dx; i += dx) {
+    x1 = i;
+    let s1 = Math.sign(f(x1, a));
+    if (f(x0, a) == 0) {
+      console.log(x0);
+      document.getElementById("print").innerText +=
+        "root = " + x0.toPrecision([3]) + "\n";
+
+      x0;
+    }
+    if (f(x1, a) == 0) {
+      console.log(x1, a);
+      x0 = x1 + dx;
+      i = x0;
+    }
+    let s0 = Math.sign(f(x0, a));
+    if (s1 * s0 < 0) {
+      let root = FindRoot(f, x0, x1, dx, a);
+      document.getElementById("print").innerText +=
+        "root = " + root.toPrecision([3]) + "\n";
+      x0 = root + dx;
+      i = x0;
+    }
+  }
+  document.getElementById("print").innerText += "--------------" + "\n";
+}
+function build() {
+  let l = document.getElementById("function").value;
+  let a = Number(document.getElementById("a").value);
+  let xmin = Number(document.getElementById("xmin").value);
+  let xmax = Number(document.getElementById("xmax").value);
+  let s1 = "";
+  if (l != "") {
+    for (let i = 0; i < l.length; i++) {
+      if (
+        l[i] != "x" &&
+        l[i] != "a" &&
+        l[i] != "(" &&
+        l[i] != ")" &&
+        l[i] != "+" &&
+        l[i] != "-" &&
+        l[i] != "/" &&
+        l[i] != "." &&
+        l[i] != "*" &&
+        !(l[i] >= "0" && l[i] <= "9")
+      ) {
+        s1 += "Math.";
+        while (l[i] != ")" && i < l.length) {
+          s1 += l[i];
+          i++;
+        }
+        s1 += l[i];
+      } else {
+        s1 += l[i];
+      }
+    }
+  } else s1 = "x";
+  document.getElementById("print").innerText += "roots for f(x) = " + s1 + "\n";
+  console.log(s1);
+  let f = function(x, a) {
+    return eval(s1);
+  };
+  FalsiMethod(f, xmin, xmax, 10e-2, a);
+}
+
+    </script>
+  </body>
+</html>
